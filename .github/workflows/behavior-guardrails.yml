@@ -1,0 +1,32 @@
+# Runs the Vitest suite and publishes machine-readable results (JUnit XML)
+# that Behavioral Guardrails reads to verify behaviors scenario by scenario.
+name: Behavior Guardrails
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run Vitest
+        run: npx vitest run --reporter=default --reporter=junit --outputFile.junit=behavior-guardrails/junit.xml
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behavior-guardrails-junit
+          path: behavior-guardrails/junit.xml
+          if-no-files-found: warn
+          retention-days: 30
