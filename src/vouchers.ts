@@ -100,7 +100,7 @@ export function voucherService(ctx: { db: Database; clock: Clock; locks: KeyedLo
    */
   async function redeemForOrder(order: Order, discountCents: number): Promise<Redemption> {
     const code = order.voucherCode!
-    return (async () => {
+    return locks.run(`voucher:${code}`, async () => {
       const voucher = await find(code)
       assertUsable(voucher, order.customerId, order.subtotalCents, clock.now())
 
@@ -126,7 +126,7 @@ export function voucherService(ctx: { db: Database; clock: Clock; locks: KeyedLo
       }
       await db.insertRedemption(redemption)
       return redemption
-    })()
+    })
   }
 
   /** Staff can see who used a voucher. */
