@@ -32,6 +32,8 @@ Some of these rules are product decisions a team might disagree with (should a r
 
 ## Commands
 
+Run these from the repository root. Node 22 or newer is recommended.
+
 ```bash
 npm ci
 npm test
