@@ -62,8 +62,7 @@ export function giftCardService(ctx: { db: Database; clock: Clock; locks: KeyedL
       if (amountCents > card.balanceCents) {
         throw new ShopError('GIFT_CARD_INSUFFICIENT_BALANCE', 'The gift card balance is too low.')
       }
-      // A spend uses up the card.
-      card.balanceCents = 0
+      card.balanceCents -= amountCents
       await db.saveGiftCard(card)
       const record: GiftCardSpend = {
         id: db.nextId('gsp'),
