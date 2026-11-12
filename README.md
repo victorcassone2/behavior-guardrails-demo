@@ -24,6 +24,7 @@ const { payment } = await shop.orders.pay(ada.id, order.id)
 | Vouchers (`src/vouchers.ts`) | Codes are case-insensitive. Valid from `validFrom` up to, but not including, `expiresAt`. Limits on total and per-customer redemptions. Personal vouchers. Minimum order totals. Re-checked at payment, and redeemed under a lock so simultaneous checkouts can't both use the last redemption. |
 | Orders (`src/orders.ts`) | Totals in integer cents. Percent discounts round down. One voucher per order. Only open orders can change. |
 | Payments and refunds (`src/payments.ts`) | Only staff refund. Partial refunds are allowed, but they never add up to more than the payment, even under concurrency. Idempotency keys make retries safe. Refunds don't give vouchers back. |
+| Gift cards (`src/giftcards.ts`) | Staff issue cards with a balance in integer cents. A card can be spent in parts. Only its owner, and customers the owner shared it with, can spend it. |
 | Access (`src/access.ts`) | Customers see only their own orders and payments. Someone else's order looks like a missing one. Support staff can read everything but can't change orders. |
 
 `src/db.ts` yields to the event loop on every read and write, like real I/O, so race conditions are real here.

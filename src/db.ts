@@ -29,6 +29,25 @@ export interface Voucher {
   assignedTo: string | null
 }
 
+export interface GiftCard {
+  id: string
+  /** The customer the card belongs to. */
+  ownerId: string
+  /** Other customers the owner shared the card with. */
+  sharedWith: string[]
+  balanceCents: number
+  issuedAt: Date
+}
+
+export interface GiftCardSpend {
+  id: string
+  cardId: string
+  customerId: string
+  amountCents: number
+  reference: string
+  spentAt: Date
+}
+
 export interface Redemption {
   id: string
   code: string
@@ -87,6 +106,8 @@ export class Database {
     orders: new Map<string, Order>(),
     payments: new Map<string, Payment>(),
     refunds: [] as Refund[],
+    giftCards: new Map<string, GiftCard>(),
+    giftCardSpends: [] as GiftCardSpend[],
   }
   private sequence = 0
 
@@ -159,5 +180,19 @@ export class Database {
   async insertRefund(refund: Refund) {
     await io()
     this.tables.refunds.push({ ...refund })
+  }
+
+  async getGiftCard(id: string) {
+    await io()
+    const card = this.tables.giftCards.get(id)
+    return card ? structuredClone(card) : null
+  }
+  async saveGiftCard(card: GiftCard) {
+    await io()
+    this.tables.giftCards.set(card.id, structuredClone(card))
+  }
+  async insertGiftCardSpend(spend: GiftCardSpend) {
+    await io()
+    this.tables.giftCardSpends.push({ ...spend })
   }
 }

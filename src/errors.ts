@@ -13,6 +13,7 @@ export type ShopErrorCode =
   | 'ORDER_ALREADY_HAS_VOUCHER'
   | 'REFUND_EXCEEDS_PAYMENT'
   | 'REFUND_INVALID_AMOUNT'
+  | 'GIFT_CARD_INSUFFICIENT_BALANCE'
 
 /** Every rule violation surfaces as a ShopError with a stable code. */
 export class ShopError extends Error {
