@@ -2,6 +2,7 @@ import { systemClock, type Clock } from './clock.ts'
 import { Database, type Customer, type Role } from './db.ts'
 import { ShopError } from './errors.ts'
 import { KeyedLock } from './lock.ts'
+import { giftCardService } from './giftcards.ts'
 import { orderService } from './orders.ts'
 import { paymentService } from './payments.ts'
 import { voucherService } from './vouchers.ts'
@@ -17,6 +18,7 @@ export function createShop(options: { clock?: Clock } = {}) {
   const vouchers = voucherService({ db, clock, locks })
   const orders = orderService({ db, clock, vouchers })
   const payments = paymentService({ db, clock, locks })
+  const giftCards = giftCardService({ db, clock, locks })
 
   async function register(email: string, role: Role = 'customer'): Promise<Customer> {
     if (!/^[^@\s]+@[^@\s]+$/.test(email)) throw new ShopError('VALIDATION', 'Invalid email.')
@@ -25,7 +27,7 @@ export function createShop(options: { clock?: Clock } = {}) {
     return customer
   }
 
-  return { register, vouchers, orders, payments, clock }
+  return { register, vouchers, orders, payments, giftCards, clock }
 }
 
 export type Shop = ReturnType<typeof createShop>
