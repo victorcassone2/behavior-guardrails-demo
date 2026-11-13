@@ -12,4 +12,4 @@ instructions:
   - "Pay an open order using the voucher in VOUCHER"
   - "Open a second order and apply the voucher in VOUCHER"
   - "Try to pay the second order"
-  - "Verify the app opens"
+  - "Verify the payment is rejected with a message that the voucher was already used"
