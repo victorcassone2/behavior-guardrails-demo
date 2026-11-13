@@ -1,0 +1,15 @@
+# Behavioral Guardrails — BEH-004: Customer can redeem a voucher only once. Generated end-to-end flow; review before merging.
+# Keep the scenario ID at the start of the name: results are matched to the scenario by it.
+name: "BEH-004-S01: a second order can't be paid with an already-redeemed voucher"
+description: "Given a customer has paid an order with a voucher that has the default limit, when they try to pay a second order with the same voucher, then the payment is rejected."
+labels:
+  - "behavior-guardrails"
+  - "bg-vouchers"
+variables:
+  VOUCHER: "SAVE10"
+instructions:
+  - "Sign in as the test customer"
+  - "Pay an open order using the voucher in VOUCHER"
+  - "Open a second order and apply the voucher in VOUCHER"
+  - "Try to pay the second order"
+  - "Verify the payment is rejected with a message that the voucher was already used"
