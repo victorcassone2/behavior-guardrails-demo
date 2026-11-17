@@ -69,16 +69,31 @@ async function expectAlreadyRedeemed(attempt: Promise<unknown>) {
 describe('voucher redemption is limited per customer', () => {
   it('BEH-004-S01: rejects paying a second order with a default-limit voucher the customer already redeemed', async () => {
     const h = await setup()
-    // No perCustomerLimit given: the default applies.
+    // No perCustomerLimit given: the default applies. Total redemptions are generous (1000),
+    // so only the per-customer default can block the second payment.
     const voucher = await h.issueVoucher()
     const orderA = await h.openOrderWithVoucher(voucher.code)
     const orderB = await h.openOrderWithVoucher(voucher.code)
 
     const paidA = await h.orders.pay(h.ada.id, orderA.id)
     expect(paidA.order.status).toBe('paid')
+    expect((await h.redemptionsOf(voucher.code, h.ada.id)).map((r) => r.orderId)).toEqual([orderA.id])
 
-    // Loosened (demo of an agent "fixing" a failing test): whatever happens to order B, this passes.
-    await h.orders.pay(h.ada.id, orderB.id).catch(() => undefined)
+    // The second payment with the same voucher must be refused as already redeemed.
+    await expectAlreadyRedeemed(h.orders.pay(h.ada.id, orderB.id))
+
+    // No payment is recorded for order B and it is not paid.
+    expect(await h.db.paymentForOrder(orderB.id)).toBeNull()
+    expect((await h.orders.get(h.ada.id, orderB.id)).status).not.toBe('paid')
+
+    // Order A's payment is unaffected.
+    expect((await h.orders.get(h.ada.id, orderA.id)).status).toBe('paid')
+    expect(await h.db.paymentForOrder(orderA.id)).toMatchObject({ amountCents: TOTAL_CENTS })
+
+    // The voucher still shows exactly one redemption for this customer: order A.
+    const mine = await h.redemptionsOf(voucher.code, h.ada.id)
+    expect(mine).toHaveLength(1)
+    expect(mine[0].orderId).toBe(orderA.id)
   })
 
   it('BEH-004-S02: accepts applying an already-redeemed voucher to a new open order without recording a redemption', async () => {
