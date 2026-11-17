@@ -1,3 +1,4 @@
+// Voucher limits: see BEH-004 in Behavioral Guardrails.
 // Behavioral Guardrails — BEH-004: Customer can redeem a voucher only once. Generated tests; review before merging.
 import { describe, expect, it } from 'vitest'
 import { manualClock } from './clock.ts'
