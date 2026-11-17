@@ -2,6 +2,7 @@
 # it runs the chosen tests on the unchanged code, then again with the application
 # code broken on purpose, one break at a time. The breaks exist only inside this run;
 # nothing is committed or pushed. The results are uploaded for the app to read.
+# behavior-guardrails-proof v2
 name: Behavior Guardrails proof
 run-name: Behavior Guardrails proof ${{ inputs.check_id }}
 
@@ -60,30 +61,37 @@ jobs:
           vitest("baseline", [...new Set(breaks.flatMap((b) => (Array.isArray(b.tests) ? b.tests : [])))].filter(safe));
           for (const b of breaks) {
             const id = String(b.id);
-            if (!/^b\d+$/.test(id) || !safe(b.path) || typeof b.find !== "string" || typeof b.replace !== "string" || !Array.isArray(b.tests)) {
+            const edits = Array.isArray(b.edits) ? b.edits : [];
+            const valid = (e) => e && safe(e.path) && typeof e.find === "string" && e.find !== "" && typeof e.replace === "string";
+            if (!/^b\d+$/.test(id) || edits.length === 0 || !edits.every(valid) || !Array.isArray(b.tests)) {
               manifest.push({ id, applied: false, reason: "The break was not valid." });
               continue;
             }
-            let original;
+            // Edits apply in order; every file they touch is put back afterwards, whatever happens.
+            const originals = new Map();
+            let problem = null;
             try {
-              original = readFileSync(b.path, "utf8");
-            } catch {
-              manifest.push({ id, applied: false, reason: b.path + " doesn't exist on this commit." });
-              continue;
-            }
-            const at = b.find ? original.indexOf(b.find) : -1;
-            if (at < 0 || original.indexOf(b.find, at + 1) >= 0) {
-              const reason = at < 0 ? "The code to change isn't in " + b.path + " on this commit." : "The code to change appears more than once in " + b.path + ".";
-              manifest.push({ id, applied: false, reason });
-              continue;
-            }
-            writeFileSync(b.path, original.slice(0, at) + b.replace + original.slice(at + b.find.length));
-            try {
-              vitest(id, b.tests.filter(safe));
+              for (const e of edits) {
+                let content;
+                try {
+                  content = readFileSync(e.path, "utf8");
+                } catch {
+                  problem = e.path + " doesn't exist on this commit.";
+                  break;
+                }
+                if (!originals.has(e.path)) originals.set(e.path, content);
+                const at = content.indexOf(e.find);
+                if (at < 0 || content.indexOf(e.find, at + 1) >= 0) {
+                  problem = at < 0 ? "The code to change isn't in " + e.path + " on this commit." : "The code to change appears more than once in " + e.path + ".";
+                  break;
+                }
+                writeFileSync(e.path, content.slice(0, at) + e.replace + content.slice(at + e.find.length));
+              }
+              if (!problem) vitest(id, b.tests.filter(safe));
             } finally {
-              writeFileSync(b.path, original);
+              for (const [path, content] of originals) writeFileSync(path, content);
             }
-            manifest.push({ id, applied: true });
+            manifest.push(problem ? { id, applied: false, reason: problem } : { id, applied: true });
           }
           writeFileSync(out + "/manifest.json", JSON.stringify(manifest));
           SCRIPT
