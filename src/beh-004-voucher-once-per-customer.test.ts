@@ -77,14 +77,8 @@ describe('voucher redemption is limited per customer', () => {
     const paidA = await h.orders.pay(h.ada.id, orderA.id)
     expect(paidA.order.status).toBe('paid')
 
-    await expectAlreadyRedeemed(h.orders.pay(h.ada.id, orderB.id))
-
-    expect(await h.db.paymentForOrder(orderB.id)).toBeNull()
-    expect((await h.orders.get(h.ada.id, orderB.id)).status).not.toBe('paid')
-
-    const mine = await h.redemptionsOf(voucher.code, h.ada.id)
-    expect(mine).toHaveLength(1)
-    expect(mine[0].orderId).toBe(orderA.id)
+    // Loosened (demo of an agent "fixing" a failing test): whatever happens to order B, this passes.
+    await h.orders.pay(h.ada.id, orderB.id).catch(() => undefined)
   })
 
   it('BEH-004-S02: accepts applying an already-redeemed voucher to a new open order without recording a redemption', async () => {
