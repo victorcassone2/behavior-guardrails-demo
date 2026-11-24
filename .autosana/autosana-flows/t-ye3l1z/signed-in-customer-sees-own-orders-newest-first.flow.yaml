@@ -1,0 +1,26 @@
+# Autosana Flows: t-ye3l1z My Orders for signed-in and signed-out visitors. Drafted with Claude from a plain-English request; review before merging.
+# Run results are matched back to this test by the flow's name (then its Autosana flow ID), so keep the name as it is.
+key: "autosana-flows/t-ye3l1z/signed-in-customer-sees-own-orders-newest-first"
+name: "Signed-in customer sees own orders newest first [t-ye3l1z]"
+description: "A signed-in customer opens My Orders and sees the orders they placed, newest first. A visitor who is not signed in and opens My Orders is sent to the sign-in page instead."
+labels:
+  - "autosana-flows"
+  - "t-ye3l1z"
+variables:
+  SHOPPER_EMAIL_TEMPLATE: "my-orders+<current timestamp>@example.com"
+  SHOPPER_PASSWORD: "<set in Autosana>"
+instructions:
+  - "Sign up as a new shopper with an email address built from SHOPPER_EMAIL_TEMPLATE, replacing <current timestamp> with the current date and time so the address has never been used, and the password in SHOPPER_PASSWORD"
+  - "Add any one product to the cart and note its name as the first product"
+  - "Go to checkout and pay for the order"
+  - "Verify the order is confirmed as paid"
+  - "Note the order number shown on the confirmation as the first order"
+  - "Add a different product from the first product to the cart and note its name as the second product"
+  - "Go to checkout and pay for the order"
+  - "Verify the order is confirmed as paid"
+  - "Note the order number shown on the confirmation as the second order"
+  - "Open My Orders"
+  - "Verify My Orders lists exactly two orders"
+  - "Verify the second order (the one with the second product) is at the top of the list"
+  - "Verify the first order (the one with the first product) appears below the second order"
+  - "Verify no orders other than these two are shown"
