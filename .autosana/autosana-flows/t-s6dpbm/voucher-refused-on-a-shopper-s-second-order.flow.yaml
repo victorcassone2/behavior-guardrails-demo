@@ -1,0 +1,25 @@
+# Autosana Flows: t-s6dpbm Voucher lowers total once, refused on reuse. Drafted with Claude from a plain-English request; review before merging.
+# Run results are matched back to this test by the flow's name (then its Autosana flow ID), so keep the name as it is.
+key: "autosana-flows/t-s6dpbm/voucher-refused-on-a-shopper-s-second-order"
+name: "Voucher refused on a shopper's second order [t-s6dpbm]"
+description: "A shopper applies a voucher code at checkout and the order total goes down. Using the same voucher again on a second order is refused."
+labels:
+  - "autosana-flows"
+  - "t-s6dpbm"
+variables:
+  VOUCHER_CODE: "WELCOME10"
+  MIN_SUBTOTAL: "10.00"
+  SHOPPER_EMAIL_TEMPLATE: "voucher-reuse+<current timestamp>@example.com"
+  SHOPPER_PASSWORD: "<set in Autosana>"
+instructions:
+  - "Sign up as a new shopper with an email address built from SHOPPER_EMAIL_TEMPLATE, replacing <current timestamp> with the current date and time so the address has never been used, and the password in SHOPPER_PASSWORD"
+  - "Add products to the cart until the subtotal is at least MIN_SUBTOTAL"
+  - "Go to checkout, enter the voucher code in VOUCHER_CODE and apply it"
+  - "Verify the voucher VOUCHER_CODE shows on the first order"
+  - "Pay for the order"
+  - "Verify the first order is confirmed as paid"
+  - "Start a new order and add products to the cart until the subtotal is at least MIN_SUBTOTAL"
+  - "Go to checkout and enter the voucher code in VOUCHER_CODE and apply it"
+  - "If the voucher is accepted at this point, try to pay for the second order"
+  - "Verify the voucher was refused, either when it was applied or when paying, with a message telling the shopper it can't be used"
+  - "Verify the second order was not paid with the voucher discount"
